@@ -1,10 +1,16 @@
 # SimpleBluetoothLowEnergySocket
-A simple tcp style socket for Bluetooth Low Energy for Linux using purely Bluez 5.46 DBUS API
+A simple tcp style socket for Bluetooth Low Energy for Linux using purely Bluez 5.46 DBUS API with C++
 
 ## Basic Idea
 Bluetooth programming ist very hard with Bluez - especially the missing documentation and tutorials.
 The beginning of learning a new technologie is the Hello World but this is very difficult without an example or a tutorial.
 This project shall provide a easy playground to send arbitrary data over Bluetooth Low Energy (BLE 4.0) characteristics - similiar to Nordic Semiconductors Uart Service (NUS).
+
+The project has two goals:
+1. Understand programming Bluetooth Low Energy by providing an example
+2. Providing a code basis to be customized and embeded it into you application (if you need another licence contact me).
+
+## Paradigma Explanation
 
 ### tcp
 When programmin with tcp socket often the following pattern is used for handling tcp connections:
