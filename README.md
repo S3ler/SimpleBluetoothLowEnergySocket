@@ -80,7 +80,9 @@ We use the following pattern for BLE4.0 then:
 For all (tcp, udp, BLE) technologies a **connector** and a **connection** class shall be implemented a **SimpleConnectorInterface** and a **SimpleConnectionInterface**.
 This shall make the whole project even estensible to other technologies like ZigBee, Lora and so on.
 
-
-
+## API Explanation
+My requirements for the api are that it is easy to use.
+Less is more and cleaning up broken connection should be performed automatically.
+For every technology a simple chat (star-topology) example is provided, where multiple client connect to a central server and chat with the server.
 
 
