@@ -10,9 +10,9 @@ The project has two goals:
 1. Understand programming Bluetooth Low Energy by providing an example
 2. Providing a code basis to be customized and embeded it into you application (if you need another licence contact me).
 
-## Paradigma Explanation
+## Pattern Explanation
 
-### tcp
+### TCP
 When programmin with tcp socket often the following pattern is used for handling tcp connections:
 For a easier understanding and programming every method is synchronously.
 
@@ -29,7 +29,7 @@ A second class handling the **connection**
 4. handles application logic
 5. close connection
 
-### udp
+### UDP
 Of course udp sockets are simpler - we can handle incoming packets one by one - or we can use a similiar patter:
 (Of couse outgoing packets are send over the same udp socket used in the **connect**)
 (Not really easy but with the right interfaces, threading, caching and synchronisation it provides a similiar programming logic.) 
