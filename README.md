@@ -6,6 +6,7 @@ Bluetooth programming ist very hard with Bluez - especially the missing document
 The beginning of learning a new technologie is the Hello World but this is very difficult without an example or a tutorial.
 This project shall provide a easy playground to send arbitrary data over Bluetooth Low Energy (BLE 4.0) characteristics - similiar to Nordic Semiconductors Uart Service (NUS).
 
+### tcp
 When programmin with tcp socket often the following pattern is used for handling tcp connections:
 For a easier understanding and programming every method is synchronously.
 
@@ -22,6 +23,7 @@ A second class handling the **connection**
 4. handles application logic
 5. close connection
 
+### udp
 Of course udp sockets are simpler - we can handle incoming packets one by one - or we can use a similiar patter:
 (Of couse outgoing packets are send over the same udp socket used in the **connect**)
 (Not really easy but with the right interfaces, threading, caching and synchronisation it provides a similiar programming logic.) 
@@ -41,6 +43,7 @@ Of course udp sockets are simpler - we can handle incoming packets one by one - 
 4. handles application logic (by receiving packets from **connector 3.2**)
 5. close connection (not really necessary with udp - only the thread finishes)
 
+### Bluetooth Low Energy
 Unfortunately Bluetooth Low Energy provides a mixture of both.
 Messages are received asynchronously but peripheral and central devices are connected by connections.
 Furthermore peripherals are the server and central devices are the clients.
@@ -69,7 +72,7 @@ We use the following pattern for BLE4.0 then:
 5. close connection
 
 For all (tcp, udp, BLE) technologies a **connector** and a **connection** class shall be implemented a **SimpleConnectorInterface** and a **SimpleConnectionInterface**.
-
+This shall make the whole project even estensible to other technologies like ZigBee, Lora and so on.
 
 
 
