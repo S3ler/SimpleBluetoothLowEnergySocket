@@ -19,10 +19,17 @@ void BLEScanner::scan() {
     if (!running && !stopped) {
         // we can start it normally
     }
+
     // TODO start scanning
 }
 
 std::shared_ptr<BLEAdvertisment> BLEScanner::awaitAdvertisment() {
+
+    // the call itself blocks after as long as you do not call stopScanning() the scans are buffered
+    // so scanning self works asynchronously and with awaitAdvertisment or getAdvertisment you can get the scans
+
+    scan();
+    //while(no scan received - wait))
     using namespace std::chrono_literals;
     // http://en.cppreference.com/w/cpp/thread/condition_variable/wait_for
     std::this_thread::sleep_for(2000ms);

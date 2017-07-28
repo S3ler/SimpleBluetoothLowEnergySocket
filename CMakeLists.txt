@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.7)
-project(bluetoothctl546_experiments)
+project(SimpleBluetoothLowEnergySocket)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -17,6 +17,7 @@ include_directories(libBLE)
 
 add_subdirectory(libBLE)
 add_subdirectory(examples/client)
-add_subdirectory(examples/server)
+add_subdirectory(examples/central)
+add_subdirectory(examples/scanner)
 
 

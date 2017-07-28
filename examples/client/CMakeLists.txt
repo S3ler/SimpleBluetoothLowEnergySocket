@@ -4,5 +4,5 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(MAIN_FILE main.cpp)
 
-add_executable(BLEPeripheral ${MAIN_FILE})
-target_link_libraries(BLEPeripheral libBLEScan)
+add_executable(SimpleBLEClient ${MAIN_FILE})
+target_link_libraries(SimpleBLEClient libBLE)

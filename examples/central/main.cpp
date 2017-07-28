@@ -8,9 +8,10 @@
 #include <iostream>
 #include <fcntl.h>
 #include <zconf.h>
-#include <BLEController.h>
-#include <BLE.h>
-#include "BLEPeripheral.h"
+#include "BLE.h"
+#include "BLEScanner.h"
+#include "BLEConnection.h"
+#include "BLECentral.h"
 
 void add_sigIntHandler();
 
@@ -19,13 +20,13 @@ void my_sigIntHandler(int s);
 std::atomic<bool> sigIntReceived(false);
 
 /*
- * Simple Low Energy Client
- * usage: BLEPeripheral [XX:XX:XX:XX:XX:XX]
+ * Simple Bluetooth Low Energy Server
+ * usage: BLEScan [XX:XX:XX:XX:XX:XX]
  * if no mac is given the default bluetooth adapter is used
  */
 int main(int argc, char *argv[]) {
-    BLE ble;
 
+    BLE ble;
     std::list<std::shared_ptr<BLEController>> controllers = ble.getController();
     for (auto &&controller : controllers) {
         std::cout << "BLEController: " << controller->getMac() << std::endl;
@@ -52,17 +53,17 @@ int main(int argc, char *argv[]) {
     int flags = fcntl(0, F_GETFL, 0);
     fcntl(0, F_SETFL, flags | O_NONBLOCK);
 
-    BLEPeripheral peripheral(controller);
+    BLECentral bleCentral(controller);
     while (!sigIntReceived) {
-        if (peripheral.advertise()) {
-            std::shared_ptr<BLEConnection> connection = peripheral.awaitConnection();
-            if (connection == nullptr) {
-                continue;
-            }
-            while (peripheral.isConnected() && !sigIntReceived) {
+        std::shared_ptr<BLEConnection> bleConnection = bleCentral.awaitConnection();
+        if (bleConnection == nullptr) {
+            continue;
+        }
+        if (bleConnection->connect()) {
+            while (bleConnection->isConnected() && !sigIntReceived) {
                 char input_buffer[255] = {0};
                 if (read(0, input_buffer, 255) == -1) {
-                    std::string msg = connection->getMessage();
+                    std::string msg = bleConnection->getMessage();
                     if (msg.empty()) {
                         std::cout << msg << std::endl;
                     }
@@ -70,14 +71,14 @@ int main(int argc, char *argv[]) {
                 }
                 std::string input(input_buffer);
 
-                if (connection->send(input)) {
+                if (bleConnection->send(input)) {
                     std::cout << "send success" << std::endl;
                 } else {
                     std::cout << "send failure" << std::endl;
                 }
 
             }
-            connection->disconnect();
+            bleConnection->disconnect();
         }
     }
 

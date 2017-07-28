@@ -17,10 +17,6 @@ public:
 
     BLEScanner(std::shared_ptr<BLEController> shared_ptr);
 
-    void scan();
-
-    void stop();
-
     std::shared_ptr<BLEAdvertisment> awaitAdvertisment();
 
     std::shared_ptr<BLEAdvertisment> getAdvertisment();
@@ -29,7 +25,12 @@ public:
 
     const std::atomic<bool> &isRunning() const;
 
+    void scan();
+
+    void stop();
+
 private:
+
     std::atomic<bool> running;
     std::atomic<bool> stopped;
     std::map<std::string, std::shared_ptr<BLEAdvertisment>> bleAdvertisments;
