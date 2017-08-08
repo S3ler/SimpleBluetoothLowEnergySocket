@@ -8,10 +8,9 @@
 #include <iostream>
 #include <fcntl.h>
 #include <zconf.h>
+#include <BLEAdapterRemovedException.h>
 #include "BLE.h"
-#include "BLEScanner.h"
-#include "BLEConnection.h"
-#include "BLECentral.h"
+#include "BLENUSConnection.h"
 
 void add_sigIntHandler();
 
@@ -21,64 +20,117 @@ std::atomic<bool> sigIntReceived(false);
 
 /*
  * Simple Bluetooth Low Energy Server
- * usage: BLEScan [XX:XX:XX:XX:XX:XX]
- * if no mac is given the default bluetooth adapter is used
  */
 int main(int argc, char *argv[]) {
 
     BLE ble;
-    std::list<std::shared_ptr<BLEController>> controllers = ble.getController();
-    for (auto &&controller : controllers) {
-        std::cout << "BLEController: " << controller->getMac() << std::endl;
+    std::list<std::shared_ptr<BLEAdapter>> adapters = ble.getAdapters();
+    if (adapters.empty()) {
+        std::cout << "Could not find a bluetooth controller" << std::endl;
+        exit(1);
+    }
+    for (auto &&ad : adapters) {
+        std::cout << "BLEAdapter: " << ad->getMac() << std::endl;
     }
 
-    std::shared_ptr<BLEController> controller;
+    std::shared_ptr<BLEAdapter> adapter;
     if (argc == 1) {
-        controller = ble.getDefaultController();
-        if (controller == nullptr) {
+        adapter = adapters.front();
+        if (adapter == nullptr) {
             std::cout << "Could not find a default bluetooth controller" << std::endl;
             exit(1);
         }
         // use default bluetooth adapter
     } else if (argc == 2) {
         std::string mac(argv[1]);
-        controller = ble.getController(mac);
-        if (controller == nullptr) {
+        for (auto &&a : adapters) {
+            if (!a->getMac().compare(mac)) {
+                adapter = a;
+                break;
+            }
+        }
+        if (adapter == nullptr) {
             std::cout << "Could not find a bluetooth controller" << std::endl;
             exit(1);
         }
     }
+    std::cout << "using: " << *adapter << std::endl;
 
     add_sigIntHandler();
     int flags = fcntl(0, F_GETFL, 0);
     fcntl(0, F_SETFL, flags | O_NONBLOCK);
 
-    BLECentral bleCentral(controller);
+    adapter->startScan();
+
     while (!sigIntReceived) {
-        std::shared_ptr<BLEConnection> bleConnection = bleCentral.awaitConnection();
-        if (bleConnection == nullptr) {
+        if(adapter == nullptr){
+            adapters = ble.getAdapters();
+            if(adapters.empty()){
+                continue;
+            }
+            adapter = adapters.front();
             continue;
         }
-        if (bleConnection->connect()) {
-            while (bleConnection->isConnected() && !sigIntReceived) {
+        std::list<std::shared_ptr<BLEDevice>> bleDevices;
+        try {
+            bleDevices = adapter->getDevices();
+        }catch  (const BLEAdapterRemovedException& e){
+            adapter = nullptr;
+            std::cout << "Adapter Removed" << std::endl;
+            continue;
+        }
+
+        //bleDevices = adapter->getDevices();
+        if(bleDevices.empty()){
+            continue;
+        }
+        for (auto &&d : bleDevices) {
+            std::cout << *d << std::endl;
+        }
+        std::shared_ptr<BLEDevice> bleDevice = bleDevices.front();
+
+        if (bleDevice->connect()) {
+            std::cout << *bleDevice << std::endl;
+            if(!bleDevice->hasNUS()){
+                bleDevice->disconnect();
+                continue;
+            }
+            std::shared_ptr<BLENUSConnection> bleNUSConnection= bleDevice->getNUSConnection();
+            bleNUSConnection->connect();
+            std::cout << "Connected with NUS: " << *bleDevice << std::endl;
+            while (bleDevice->isConnected() && !sigIntReceived) {
                 char input_buffer[255] = {0};
                 if (read(0, input_buffer, 255) == -1) {
-                    std::string msg = bleConnection->getMessage();
-                    if (msg.empty()) {
-                        std::cout << msg << std::endl;
+                    std::vector<uint8_t> msg = bleNUSConnection->getMessage();
+                    if (!msg.empty()) {
+                        std::string str(msg.begin(), msg.end());
+                        std::cout << "Received Message:" << str << std::flush;
                     }
                     continue;
                 }
                 std::string input(input_buffer);
-
-                if (bleConnection->send(input)) {
-                    std::cout << "send success" << std::endl;
-                } else {
-                    std::cout << "send failure" << std::endl;
+                if(!input.empty()){
+                    std::vector<uint8_t> msg;
+                    std::copy(input.begin(),input.end(), std::back_inserter(msg));
+                    msg.push_back('\0');
+                    if(msg.size()>20){
+                        std::cout << "Cannot send message longer than 20 bytes." << std::endl;
+                        continue;
+                    }
+                    if (bleNUSConnection->send(msg)) {
+                        std::cout << "Send Success" << std::endl;
+                    } else {
+                        std::cout << "Send Failure" << std::endl;
+                    }
                 }
-
             }
-            bleConnection->disconnect();
+            if(!bleDevice->isConnected()){
+                bleNUSConnection->disconnect();
+                bleDevice->disconnect();
+            }
+        }
+        if(sigIntReceived){
+            break;
         }
     }
 

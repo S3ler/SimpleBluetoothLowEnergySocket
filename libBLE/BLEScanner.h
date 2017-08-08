@@ -5,36 +5,39 @@
 #ifndef BLUETOOTHCTL546_EXPERIMENTS_BLESCANNER_H
 #define BLUETOOTHCTL546_EXPERIMENTS_BLESCANNER_H
 
-#include <map>
+#include "helper/Observer.h"
+#include "BLEAdvertisement.h"
+#include "BLEAdapter.h"
+#include "enum.h"
+
 #include <memory>
 #include <atomic>
-#include "BLEAdvertisment.h"
-#include "BLEController.h"
+#include <queue>
+#include <map>
+
+class BLEAdapter;
+
 
 class BLEScanner {
 
 public:
 
-    BLEScanner(std::shared_ptr<BLEController> shared_ptr);
+    BLEScanner(std::shared_ptr<BLEAdapter> shared_ptr);
 
-    std::shared_ptr<BLEAdvertisment> awaitAdvertisment();
+    ~BLEScanner();
 
-    std::shared_ptr<BLEAdvertisment> getAdvertisment();
+    std::shared_ptr<BLEAdvertisement> getAdvertisment();
 
-    const std::atomic<bool> &isStopped() const;
+    bool stop();
 
-    const std::atomic<bool> &isRunning() const;
-
-    void scan();
-
-    void stop();
+    void notifyAdvertisment(std::shared_ptr<BLEAdvertisement> advertisment);
 
 private:
-
-    std::atomic<bool> running;
-    std::atomic<bool> stopped;
-    std::map<std::string, std::shared_ptr<BLEAdvertisment>> bleAdvertisments;
-    std::shared_ptr<BLEController> controller;
+    void pushAdvertisment(std::shared_ptr<BLEAdvertisement> advertisment);
+    std::shared_ptr<BLEAdvertisement> popAdvertisment();
+    std::map<std::string, std::shared_ptr<BLEAdvertisement>> bleAdvertisments;
+    std::queue<std::shared_ptr<BLEAdvertisement>> unrequestedBleAdvertisments;
+    std::shared_ptr<BLEAdapter> controller = nullptr;
 };
 
 

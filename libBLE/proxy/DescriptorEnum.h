@@ -1,0 +1,14 @@
+//
+// Created by bele on 06.08.17.
+//
+
+#ifndef SIMPLEBLUETOOTHLOWENERGYSOCKET_DESCRIPTORENUM_H
+#define SIMPLEBLUETOOTHLOWENERGYSOCKET_DESCRIPTORENUM_H
+
+#include <enum.h>
+
+BETTER_ENUM(DescriptorProperty, int,
+            None=-1,
+            UUID)
+
+#endif //SIMPLEBLUETOOTHLOWENERGYSOCKET_DESCRIPTORENUM_H

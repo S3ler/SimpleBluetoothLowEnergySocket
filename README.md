@@ -86,3 +86,40 @@ Less is more and cleaning up broken connection should be performed automatically
 For every technology a simple chat (star-topology) example is provided, where multiple client connect to a central server and chat with the server.
 
 
+[bluetooth]# connect 00:1A:7D:DA:71:20
+Attempting to connect to 00:1A:7D:DA:71:20
+[CHG] Device 00:1A:7D:DA:71:20 Connected: yes
+Connection successful
+[CHG] Device 00:1A:7D:DA:71:20 UUIDs: 00001800-0000-1000-8000-00805f9b34fb
+[CHG] Device 00:1A:7D:DA:71:20 UUIDs: 00001801-0000-1000-8000-00805f9b34fb
+[CHG] Device 00:1A:7D:DA:71:20 UUIDs: 6e400001-b5a3-f393-e0a9-e50e24dcca9e
+[NEW] Secondary Service
+	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a
+	Vendor specific
+[NEW] Characteristic
+	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000b
+	Vendor specific
+[NEW] Descriptor
+	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000b/desc000d
+	Client Characteristic Configuration
+[NEW] Characteristic
+	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000e
+	Vendor specific
+[NEW] Descriptor
+	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000e/desc0010
+	Characteristic Extended Properties
+[CHG] Device 00:1A:7D:DA:71:20 GattServices: /org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a
+[CHG] Device 00:1A:7D:DA:71:20 Name: bele-desktop #2
+[CHG] Device 00:1A:7D:DA:71:20 Alias: bele-desktop #2
+[CHG] Device 00:1A:7D:DA:71:20 Appearance: 0x0104
+
+isDBusChild:
+Device:
+Adapter=/org/bluez/hci2
+GattService
+Device=/org/bluez/hci2/dev_00_1A_7D_DA_71_20
+GattCharacteristic
+Service=/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a
+GattDescriptor
+Characteristic=/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000b
+

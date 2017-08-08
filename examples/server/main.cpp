@@ -8,9 +8,10 @@
 #include <iostream>
 #include <fcntl.h>
 #include <zconf.h>
-#include <BLEAdapter.h>
-#include <BLE.h>
-#include "BLEPeripheral.h"
+#include "BLE.h"
+#include "BLEScanner.h"
+#include "BLENUSConnection.h"
+#include "BLECentral.h"
 
 void add_sigIntHandler();
 
@@ -19,30 +20,37 @@ void my_sigIntHandler(int s);
 std::atomic<bool> sigIntReceived(false);
 
 /*
- * Simple Low Energy Client
- * usage: BLEPeripheral [XX:XX:XX:XX:XX:XX]
- * if no mac is given the default bluetooth adapter is used
+ * Simple Bluetooth Low Energy Server
  */
 int main(int argc, char *argv[]) {
-    BLE ble;
 
-    std::list<std::shared_ptr<BLEAdapter>> controllers = ble.getAdapters();
-    for (auto &&controller : controllers) {
-        std::cout << "BLEAdapter: " << controller->getMac() << std::endl;
+    BLE ble;
+    std::list<std::shared_ptr<BLEAdapter>> adapters = ble.getAdapters();
+    if (adapters.empty()) {
+        std::cout << "Could not find a bluetooth controller" << std::endl;
+        exit(1);
+    }
+    for (auto &&ad : adapters) {
+        std::cout << "BLEAdapter: " << ad->getMac() << std::endl;
     }
 
-    std::shared_ptr<BLEAdapter> controller;
+    std::shared_ptr<BLEAdapter> adapter;
     if (argc == 1) {
-        controller = ble.getDefaultAdapter();
-        if (controller == nullptr) {
+        adapter = adapters.back();
+        if (adapter == nullptr) {
             std::cout << "Could not find a default bluetooth controller" << std::endl;
             exit(1);
         }
         // use default bluetooth adapter
     } else if (argc == 2) {
         std::string mac(argv[1]);
-        controller = ble.getAdapter(mac);
-        if (controller == nullptr) {
+        for (auto &&a : adapters) {
+            if (!a->getMac().compare(mac)) {
+                adapter = a;
+                break;
+            }
+        }
+        if (adapter == nullptr) {
             std::cout << "Could not find a bluetooth controller" << std::endl;
             exit(1);
         }
@@ -52,17 +60,17 @@ int main(int argc, char *argv[]) {
     int flags = fcntl(0, F_GETFL, 0);
     fcntl(0, F_SETFL, flags | O_NONBLOCK);
 
-    BLEPeripheral peripheral(controller);
+    BLECServer bleCentral(adapters);
     while (!sigIntReceived) {
-        if (peripheral.advertise()) {
-            std::shared_ptr<BLEConnection> connection = peripheral.awaitConnection();
-            if (connection == nullptr) {
-                continue;
-            }
-            while (peripheral.isConnected() && !sigIntReceived) {
+        std::shared_ptr<BLEConnection> bleConnection = bleCentral.awaitConnection();
+        if (bleConnection == nullptr) {
+            continue;
+        }
+        if (bleConnection->connect()) {
+            while (bleConnection->isConnected() && !sigIntReceived) {
                 char input_buffer[255] = {0};
                 if (read(0, input_buffer, 255) == -1) {
-                    std::string msg = connection->getMessage();
+                    std::string msg = bleConnection->getMessage();
                     if (msg.empty()) {
                         std::cout << msg << std::endl;
                     }
@@ -70,14 +78,14 @@ int main(int argc, char *argv[]) {
                 }
                 std::string input(input_buffer);
 
-                if (connection->send(input)) {
+                if (bleConnection->send(input)) {
                     std::cout << "send success" << std::endl;
                 } else {
                     std::cout << "send failure" << std::endl;
                 }
 
             }
-            connection->disconnect();
+            bleConnection->disconnect();
         }
     }
 

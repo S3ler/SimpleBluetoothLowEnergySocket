@@ -3,58 +3,46 @@
 //
 
 #include <thread>
+#include <utility>
 #include "BLEScanner.h"
 
-void BLEScanner::scan() {
-    if (running && stopped) {
-        // restart
+BLEScanner::BLEScanner(std::shared_ptr<BLEAdapter> controller) :
+        controller(std::move(controller)){ }
+
+std::shared_ptr<BLEAdvertisement> BLEScanner::getAdvertisment() {
+    if (!controller->startScan(this)) {
+        return nullptr;
     }
-    if (running && !stopped) {
-        // already running
-        return;
+    return popAdvertisment();
+}
+
+void BLEScanner::pushAdvertisment(std::shared_ptr<BLEAdvertisement> advertisment){
+    bleAdvertisments.insert(std::make_pair(advertisment->getMac(), advertisment));
+    unrequestedBleAdvertisments.push(advertisment);
+}
+
+bool BLEScanner::stop() {
+    return controller->stopScan();
+}
+
+std::shared_ptr<BLEAdvertisement> BLEScanner::popAdvertisment() {
+    if(unrequestedBleAdvertisments.empty()){
+        return nullptr;
     }
-    if (!running && stopped) {
-        // we can start it normally
+    std::shared_ptr<BLEAdvertisement> front;
+    front = unrequestedBleAdvertisments.front();
+    unrequestedBleAdvertisments.pop();
+    return front;
+}
+
+
+BLEScanner::~BLEScanner() {
+    if(controller != nullptr){
+        controller->removeBLEScanner(this);
     }
-    if (!running && !stopped) {
-        // we can start it normally
-    }
-
-    // TODO start scanning
 }
 
-std::shared_ptr<BLEAdvertisment> BLEScanner::awaitAdvertisment() {
-
-    // the call itself blocks after as long as you do not call stopScanning() the scans are buffered
-    // so scanning self works asynchronously and with awaitAdvertisment or getAdvertisment you can get the scans
-
-    scan();
-    //while(no scan received - wait))
-    using namespace std::chrono_literals;
-    // http://en.cppreference.com/w/cpp/thread/condition_variable/wait_for
-    std::this_thread::sleep_for(2000ms);
-    //return std::shared_ptr<BLEAdvertisment>();
-    uint8_t mac[6] = {1, 2, 3, 4, 5, 6};
-    return std::make_shared<BLEAdvertisment>(mac);
+void BLEScanner::notifyAdvertisment(std::shared_ptr<BLEAdvertisement> advertisment) {
+    pushAdvertisment(advertisment);
 }
 
-void BLEScanner::stop() {
-    BLEScanner::stopped = true;
-}
-
-
-const std::atomic<bool> &BLEScanner::isStopped() const {
-    return stopped;
-}
-
-const std::atomic<bool> &BLEScanner::isRunning() const {
-    return running;
-}
-
-BLEScanner::BLEScanner(std::shared_ptr<BLEController> controller) : controller(controller){
-
-}
-
-std::shared_ptr<BLEAdvertisment> BLEScanner::getAdvertisment() {
-    return std::shared_ptr<BLEAdvertisment>();
-}

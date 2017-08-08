@@ -8,10 +8,9 @@
 #include <iostream>
 #include <fcntl.h>
 #include <zconf.h>
+#include <iomanip>
 #include "BLE.h"
-#include "BLEScanner.h"
-#include "BLEConnection.h"
-#include "BLECentral.h"
+
 
 void add_sigIntHandler();
 
@@ -20,46 +19,57 @@ void my_sigIntHandler(int s);
 std::atomic<bool> sigIntReceived(false);
 
 /*
- * Simple Bluetooth Low Energy Server
- * usage: BLEScan [XX:XX:XX:XX:XX:XX]
- * if no mac is given the default bluetooth adapter is used
+ * Simple Bluetooth Low Energy Scanner
  */
 int main(int argc, char *argv[]) {
 
     BLE ble;
-    std::list<std::shared_ptr<BLEController>> controllers = ble.getController();
-    for (auto &&controller : controllers) {
-        std::cout << "BLEController: " << controller->getMac() << std::endl;
+    std::list<std::shared_ptr<BLEAdapter>> adapters = ble.getAdapters();
+    if (adapters.empty()) {
+        std::cout << "Could not find a bluetooth adapter" << std::endl;
+        exit(1);
+    }
+    std::cout << "available adapter: " << std::endl;
+    for (auto &&ad : adapters) {
+        std::cout << "BLEAdapter: " << ad->getMac() << std::endl;
     }
 
-    std::shared_ptr<BLEController> controller;
+    std::shared_ptr<BLEAdapter> adapter;
     if (argc == 1) {
-        controller = ble.getDefaultController();
-        if (controller == nullptr) {
-            std::cout << "Could not find a default bluetooth controller" << std::endl;
+        adapter = adapters.back();
+        if (adapter == nullptr) {
+            std::cout << "Could not find a default bluetooth adapter" << std::endl;
             exit(1);
         }
         // use default bluetooth adapter
     } else if (argc == 2) {
         std::string mac(argv[1]);
-        controller = ble.getController(mac);
-        if (controller == nullptr) {
-            std::cout << "Could not find a bluetooth controller" << std::endl;
+        for (auto &&a : adapters) {
+            if (!a->getMac().compare(mac)) {
+                adapter = a;
+                break;
+            }
+        }
+        if (adapter == nullptr) {
+            std::cout << "Could not find a bluetooth adapter" << std::endl;
             exit(1);
         }
     }
+    std::cout << "using adapter: " << adapter->getMac() << std::endl;
+
 
     add_sigIntHandler();
     int flags = fcntl(0, F_GETFL, 0);
     fcntl(0, F_SETFL, flags | O_NONBLOCK);
-
-    BLEScanner bleScanner(controller);
+    BLEScanner bleScanner(adapter);
     while (!sigIntReceived) {
-        std::shared_ptr<BLEAdvertisment> bleAdvertisment = bleScanner.awaitAdvertisment();
+        std::shared_ptr<BLEAdvertisement> bleAdvertisment = bleScanner.getAdvertisment();
         if (bleAdvertisment == nullptr) {
             continue;
         }
-        std::cout << bleAdvertisment << std::endl;
+        auto ad_time =bleAdvertisment->getTimestamp();
+        std::cout << std::put_time(std::localtime(&ad_time), "%Y-%m-%d %X")
+                  << " BLEAdvertisement: " << *(bleAdvertisment.get()) << std::endl;
     }
     bleScanner.stop();
 
@@ -67,7 +77,7 @@ int main(int argc, char *argv[]) {
 }
 
 void my_sigIntHandler(int s) {
-    //https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event-c
+    // https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event-c
     std::cout << std::endl;
     sigIntReceived = true;
 }

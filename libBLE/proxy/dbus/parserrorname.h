@@ -1,0 +1,12 @@
+//
+// Created by bele on 06.08.17.
+//
+
+#ifndef SIMPLEBLUETOOTHLOWENERGYSOCKET_PARSERRORNAME_H
+#define SIMPLEBLUETOOTHLOWENERGYSOCKET_PARSERRORNAME_H
+
+#include <string>
+
+std::string parseErrorName(const char *fullErrorName);
+
+#endif //SIMPLEBLUETOOTHLOWENERGYSOCKET_PARSERRORNAME_H
