@@ -81,7 +81,7 @@ set(SOURCE_FILES
         safe_flag.h
         helper/Observer.h
         helper/ValueObserver.h
-        proxy/dbus/StartNotify.cpp proxy/dbus/StartNotify.h proxy/dbus/StopNotify.cpp proxy/dbus/StopNotify.h proxy/dbus/WriteValue.cpp proxy/dbus/WriteValue.h BLEAdapterRemovedException.cpp BLEAdapterRemovedException.h)
+        proxy/dbus/StartNotify.cpp proxy/dbus/StartNotify.h proxy/dbus/StopNotify.cpp proxy/dbus/StopNotify.h proxy/dbus/WriteValue.cpp proxy/dbus/WriteValue.h BLEAdapterRemovedException.cpp BLEAdapterRemovedException.h proxy/dbus/RemoveDevice.cpp proxy/dbus/RemoveDevice.h)
 
 
 add_library(libBLE ${SOURCE_FILES})

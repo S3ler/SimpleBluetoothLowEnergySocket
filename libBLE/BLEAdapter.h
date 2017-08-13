@@ -5,6 +5,7 @@
 #ifndef BLUETOOTHCTL546_EXPERIMENTS_BLECONTROLLER_H
 #define BLUETOOTHCTL546_EXPERIMENTS_BLECONTROLLER_H
 
+#include "BLEDevice.h"
 #include "BLEScanner.h"
 #include "safe_flag.h"
 
@@ -17,11 +18,10 @@
 #include <ostream>
 #include <proxy/AdapterEnums.h>
 #include <proxy/AdapterProxy.h>
-#include "BLEScanner.h"
 
 class BLEScanner;
 class AdapterProxy;
-
+class BLEDevice;
 class BLEScannnerError;
 
 enum class BLEAdapterUsage {
@@ -39,6 +39,8 @@ public:
     virtual ~BLEAdapter();
 
     void setAdapterProxy(const std::shared_ptr<AdapterProxy> &adapterProxy);
+
+    void removeBLEDevice(std::shared_ptr<BLEDevice> bleDevice);
 
     bool startScan(BLEScanner *bleScanner);
 

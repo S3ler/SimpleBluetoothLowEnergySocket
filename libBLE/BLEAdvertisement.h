@@ -13,6 +13,8 @@
 #include <gdbus/gdbus.h>
 #include <memory>
 
+class BLEDevice;
+
 class BLEAdvertisement {
 public:
     BLEAdvertisement(const std::string &mac, const std::string &name, const std::string &alias, int16_t rssi,

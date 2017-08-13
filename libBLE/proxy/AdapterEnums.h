@@ -30,12 +30,6 @@ BETTER_ENUM(StopDiscoveryReturn, int,
             NotAuthorized)
 
 
-BETTER_ENUM(RemoveDeviceReturn, int,
-            Success,
-            InvalidArguments,
-            Failed)
-
-
 BETTER_ENUM(SetDiscoveryFilterReturn, int,
             Success,
             NotReady,

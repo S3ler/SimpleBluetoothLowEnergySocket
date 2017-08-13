@@ -26,6 +26,7 @@ iovec *WriteValueUserData::getIov(){
 }
 
 WriteValueReturn writeValue(GDBusProxy *proxy, std::vector<uint8_t> value){
+    // TODO memory leak (g_free!!)
     const char* method = "WriteValue";
     struct iovec iov;
     iov.iov_base = value.data();

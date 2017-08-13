@@ -8,6 +8,7 @@
 #include "BLEGattService.h"
 #include "infix_iterator.h"
 #include "BLENUSConnection.h"
+#include "BLEAdapter.h"
 #include <proxy/dbus/ConnectDevice.h>
 #include <memory>
 #include <proxy/DeviceProxy.h>
@@ -39,14 +40,22 @@ public:
     std::vector<std::string> getUUIDs() const;
 
     /**
-     * Checks if a device is unreachable and not in range aka broken.
+     * Checks if a device is unreachable and not in range aka broken via heuristic.
      * The bluez dbus api keeps devices in the dbus tree even when they are disconnected and not reachable.
-     * But a connect to these devices always fails and takes 30 seconds and blocks the whole adapter.
-     * We try to detect so called broke devices by checkking if we can request the following Properties:
-     * Blocked, Connected, Paired, Trusted, RSSI, TxPower.
-     * If the all fail we assume the device as broken and we can call then remove on the corresponding adapter.
-     * Notice: After calling remove the device is of course not to be used (isRemoved will return true)
+     * But a connect to these devices always fails and takes 30 seconds and blocks when running single threaded
+     * We try to detect so called broke devices by checking the following conditions:
+     * device is not connected
+     * device's RSSI is not accessible
+     * device's TxPower is not accessible
+     * If the all is true we assume the device as "broken" and we can call then remove on the corresponding adapter.
+     * Notice: After calling remove the device is of course not to be used (isRemoved will return true aka throw exceptions)
      *
+     * RReasons for picking these property:
+     * During scanning RSSI and TxPower can be accessed.
+     * While scanning is off, RSSI and TxPower is inaccessabled.
+     * But if the device is already connected it is not broken.
+     * Of course unconnected devices (which are able to connect) while scanning is off are detected as broken.
+     * It is not perfect but better then alway trying to connect to a lot of unaccessible devices.
      */
     bool isBroken() const;
 
@@ -94,7 +103,7 @@ public:
     bool contains(std::vector<std::string> flags, std::string flag);
 
 private:
-
+    friend class BLEAdapter;
 };
 
 

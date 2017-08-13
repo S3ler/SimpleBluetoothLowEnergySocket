@@ -54,7 +54,7 @@ public:
 private:
     std::unordered_map<GDBusProxy*, std::shared_ptr<CharacteristicProxy>> characteristicProxies;
 
-
+    friend class AdapterProxy;
 };
 
 

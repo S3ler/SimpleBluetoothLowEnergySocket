@@ -22,12 +22,12 @@ void setBooleanProperty(GDBusProxy *proxy, const char *name, bool value) {
 }
 
 uint32_t getUint32Property(GDBusProxy *proxy, const char *name) {
-    dbus_uint32_t valu32=UINT32_MAX;
+    dbus_uint32_t valu32 = UINT32_MAX;
     getProperty(proxy, name, PROPERTY_TYPE::UINT32, &valu32);
     return valu32;
 }
 
-uint32_t setUint32Property(GDBusProxy *proxy, const char *name, uint32_t value){
+uint32_t setUint32Property(GDBusProxy *proxy, const char *name, uint32_t value) {
     setProperty(proxy, name, PROPERTY_TYPE::UINT32, (void *) &value);
 }
 
@@ -208,7 +208,7 @@ void setProperty(GDBusProxy *proxy, const char *name, PROPERTY_TYPE prop_type, v
             break;
         case PROPERTY_TYPE::UINT32: {
             // TODO
-            dbus_uint32_t uint32Value = *(uint32_t*) to_set_value;
+            dbus_uint32_t uint32Value = *(uint32_t *) to_set_value;
             if (g_dbus_proxy_set_property_basic(proxy, name, DBUS_TYPE_UINT32, &uint32Value, setPropertyReply,
                                                 (void *) &userData, NULL)
                 == FALSE) {
@@ -224,7 +224,7 @@ void setProperty(GDBusProxy *proxy, const char *name, PROPERTY_TYPE prop_type, v
         }
             break;
         case PROPERTY_TYPE::STRING: {
-            char* sValue = g_strdup(((std::string*)to_set_value)->c_str());
+            char *sValue = g_strdup(((std::string *) to_set_value)->c_str());
             if (g_dbus_proxy_set_property_basic(proxy, name, DBUS_TYPE_STRING, &sValue, setPropertyReply,
                                                 (void *) &userData, NULL)
                 == FALSE) {
@@ -290,15 +290,26 @@ PROPERTY_TYPE getPropertyTypeFromDBusMessageIter(DBusMessageIter *iter) {
         case DBUS_TYPE_ARRAY: {
             DBusMessageIter subiter;
             dbus_message_iter_recurse(iter, &subiter);
-            if(getPropertyTypeFromDBusMessageIter(&subiter)==+PROPERTY_TYPE::STRING){
+            if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::STRING) {
                 return PROPERTY_TYPE::ARRAY_OF_STRINGS;
-            }else if(getPropertyTypeFromDBusMessageIter(&subiter)==+PROPERTY_TYPE::BYTE){
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::BYTE) {
                 return PROPERTY_TYPE::ARRAY_OF_BYTES;
-            }else if(getPropertyTypeFromDBusMessageIter(&subiter)==+PROPERTY_TYPE::OBJECTPATH){
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::OBJECTPATH) {
                 return PROPERTY_TYPE::ARRAY_OF_OBJECTPATHES;
-            }else{
-                    throw std::runtime_error("detection of this dbus type not implemented yet");
-                }
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::BOOLEAN) {
+                throw std::runtime_error("detection of this dbus type not implemented yet");
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::UINT32) {
+                throw std::runtime_error("detection of this dbus type not implemented yet");
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::UINT16) {
+                throw std::runtime_error("detection of this dbus type not implemented yet");
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::INT16) {
+                throw std::runtime_error("detection of this dbus type not implemented yet");
+            } else if (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::ARRAY) {
+                // TODO array of array
+                throw std::runtime_error("detection of this dbus type not implemented yet");
+            }else {
+                return PROPERTY_TYPE::INVALID;
+            }
             // can be String
             // can be object path
             // TODO
@@ -432,7 +443,7 @@ void getPropertyFromIter(DBusMessageIter *iter, PROPERTY_TYPE prop_type, void *r
             }
             throw std::runtime_error("property type do not match");
             break;
-        case PROPERTY_TYPE::OBJECTPATH:{
+        case PROPERTY_TYPE::OBJECTPATH: {
             if (dbus_message_iter_get_arg_type(iter) == DBUS_TYPE_OBJECT_PATH) {
                 std::string *value = (std::string *) return_value;
                 const char *v;
@@ -443,14 +454,14 @@ void getPropertyFromIter(DBusMessageIter *iter, PROPERTY_TYPE prop_type, void *r
             }
             throw std::runtime_error("property type do not match");
         }
-        break;
+            break;
         case PROPERTY_TYPE::ARRAY_OF_STRINGS: {
             DBusMessageIter subiter;
             dbus_message_iter_recurse(iter, &subiter);
             std::vector<std::string> *value = (std::vector<std::string> *) return_value;
-            while(getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::STRING){
+            while (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::STRING) {
                 std::string list_entry;
-                getPropertyFromIter(&subiter, PROPERTY_TYPE::STRING, (void*) &list_entry );
+                getPropertyFromIter(&subiter, PROPERTY_TYPE::STRING, (void *) &list_entry);
                 value->push_back(list_entry);
                 dbus_message_iter_next(&subiter);
             }
@@ -461,10 +472,10 @@ void getPropertyFromIter(DBusMessageIter *iter, PROPERTY_TYPE prop_type, void *r
         case PROPERTY_TYPE::ARRAY_OF_BYTES: {
             DBusMessageIter subiter;
             dbus_message_iter_recurse(iter, &subiter);
-            std::vector<uint8_t> *value = (std::vector<uint8_t > *) return_value;
-            while(getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::BYTE) {
+            std::vector<uint8_t> *value = (std::vector<uint8_t> *) return_value;
+            while (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::BYTE) {
                 uint8_t list_entry;
-                getPropertyFromIter(&subiter, PROPERTY_TYPE::BYTE, (void*) &list_entry );
+                getPropertyFromIter(&subiter, PROPERTY_TYPE::BYTE, (void *) &list_entry);
                 value->push_back(list_entry);
                 dbus_message_iter_next(&subiter);
             }
@@ -476,9 +487,9 @@ void getPropertyFromIter(DBusMessageIter *iter, PROPERTY_TYPE prop_type, void *r
             DBusMessageIter subiter;
             dbus_message_iter_recurse(iter, &subiter);
             std::vector<std::string> *value = (std::vector<std::string> *) return_value;
-            while(getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::OBJECTPATH){
+            while (getPropertyTypeFromDBusMessageIter(&subiter) == +PROPERTY_TYPE::OBJECTPATH) {
                 std::string list_entry;
-                getPropertyFromIter(&subiter, PROPERTY_TYPE::OBJECTPATH, (void*) &list_entry );
+                getPropertyFromIter(&subiter, PROPERTY_TYPE::OBJECTPATH, (void *) &list_entry);
                 value->push_back(list_entry);
                 dbus_message_iter_next(&subiter);
             }

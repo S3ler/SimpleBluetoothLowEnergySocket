@@ -246,6 +246,9 @@ bool BLEDevice::contains(std::vector<std::string> flags, std::string flag) {
 }
 
 bool BLEDevice::isBroken() const {
-    return false;
+    if(isConnected()){
+        return false;
+    }
+    return getTxPower() == INT16_MAX && getRSSI() == INT16_MAX;
 }
 

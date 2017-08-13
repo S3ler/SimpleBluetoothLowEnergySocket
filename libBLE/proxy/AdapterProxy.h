@@ -12,6 +12,7 @@
 #include <cstring>
 #include <memory>
 #include <map>
+#include <proxy/dbus/RemoveDevice.h>
 
 #include "Proxy.h"
 #include "ServiceProxy.h"

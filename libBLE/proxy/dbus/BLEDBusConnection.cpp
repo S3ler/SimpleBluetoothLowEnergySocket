@@ -110,7 +110,8 @@ void property_changed(GDBusProxy *proxy, const char *name,
         }
             break;
         case PROPERTY_TYPE::INVALID: {
-            throw std::runtime_error("property type is invalid");
+            // ignore
+            break;
         }
         default:
             // TODO

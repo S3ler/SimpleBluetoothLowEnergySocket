@@ -60,42 +60,67 @@ int main(int argc, char *argv[]) {
     int flags = fcntl(0, F_GETFL, 0);
     fcntl(0, F_SETFL, flags | O_NONBLOCK);
 
+    std::list<std::shared_ptr<BLEDevice>> bleDevices;
+    bleDevices = adapter->getDevices();
+    if (!bleDevices.empty()) {
+
+        for (std::_List_iterator<std::shared_ptr<BLEDevice>> iterator = bleDevices.begin();
+             iterator != bleDevices.end(); /*++iterator*/) {
+            std::shared_ptr<BLEDevice> sptr = *iterator;
+            adapter->removeBLEDevice(sptr);
+            bleDevices.remove(sptr);
+        }
+    }
     adapter->startScan();
 
+    int connectionFailedCounter = 0;
+
     while (!sigIntReceived) {
-        if(adapter == nullptr){
+        if (adapter == nullptr) {
             adapters = ble.getAdapters();
-            if(adapters.empty()){
+            if (adapters.empty()) {
                 continue;
             }
             adapter = adapters.front();
+            std::cout << "using: " << *adapter << std::endl;
+            adapter->startScan();
             continue;
         }
         std::list<std::shared_ptr<BLEDevice>> bleDevices;
         try {
             bleDevices = adapter->getDevices();
-        }catch  (const BLEAdapterRemovedException& e){
+        } catch (const BLEAdapterRemovedException &e) {
             adapter = nullptr;
             std::cout << "Adapter Removed" << std::endl;
             continue;
         }
 
         //bleDevices = adapter->getDevices();
-        if(bleDevices.empty()){
+        if (bleDevices.empty()) {
             continue;
         }
-        for (auto &&d : bleDevices) {
-            std::cout << *d << std::endl;
+        for (std::_List_iterator<std::shared_ptr<BLEDevice>> iterator = bleDevices.begin();
+             iterator != bleDevices.end(); /*++iterator*/) {
+            std::shared_ptr<BLEDevice> sptr = *iterator;
+            std::cout << *sptr << std::endl;
+            if (sptr->isBroken()) {
+                adapter->removeBLEDevice(sptr);
+                bleDevices.remove(sptr);
+            } else {
+                ++iterator;
+            }
         }
         std::shared_ptr<BLEDevice> bleDevice = bleDevices.front();
 
         if (bleDevice->connect()) {
+            connectionFailedCounter = 0;
             std::cout << *bleDevice << std::endl;
-            if(!bleDevice->hasNUS()){
+            if (!bleDevice->hasNUS()) {
                 bleDevice->disconnect();
+                adapter->removeBLEDevice(bleDevice);
                 continue;
             }
-            std::shared_ptr<BLENUSConnection> bleNUSConnection= bleDevice->getNUSConnection();
+            std::shared_ptr<BLENUSConnection> bleNUSConnection = bleDevice->getNUSConnection();
             bleNUSConnection->connect();
             std::cout << "Connected with NUS: " << *bleDevice << std::endl;
             while (bleDevice->isConnected() && !sigIntReceived) {
@@ -104,16 +129,16 @@ int main(int argc, char *argv[]) {
                     std::vector<uint8_t> msg = bleNUSConnection->getMessage();
                     if (!msg.empty()) {
                         std::string str(msg.begin(), msg.end());
-                        std::cout << "Received Message:" << str << std::flush;
+                        std::cout << "Received Message:" << str.substr(0, str.length()) << std::flush;
                     }
                     continue;
                 }
                 std::string input(input_buffer);
-                if(!input.empty()){
+                if (!input.empty()) {
                     std::vector<uint8_t> msg;
-                    std::copy(input.begin(),input.end(), std::back_inserter(msg));
+                    std::copy(input.begin(), input.end(), std::back_inserter(msg));
                     msg.push_back('\0');
-                    if(msg.size()>20){
+                    if (msg.size() > 20) {
                         std::cout << "Cannot send message longer than 20 bytes." << std::endl;
                         continue;
                     }
@@ -124,12 +149,20 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
-            if(!bleDevice->isConnected()){
+            if (!bleDevice->isConnected()) {
                 bleNUSConnection->disconnect();
                 bleDevice->disconnect();
+                adapter->removeBLEDevice(bleDevice);
+            }
+        } else {
+            connectionFailedCounter++;
+            std::cout << " connection failed: " << connectionFailedCounter << std::endl;
+            if (connectionFailedCounter == 1) {
+                adapter->removeBLEDevice(bleDevice);
+                connectionFailedCounter = 0;
             }
         }
-        if(sigIntReceived){
+        if (sigIntReceived) {
             break;
         }
     }

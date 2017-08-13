@@ -3,6 +3,7 @@
 //
 
 
+#include <proxy/dbus/RemoveDevice.h>
 #include "AdapterProxy.h"
 
 AdapterProxy::AdapterProxy(GDBusProxy *proxy) : Proxy(proxy) {
@@ -25,9 +26,9 @@ bool AdapterProxy::addDevice(GDBusProxy *proxy) {
 
 bool AdapterProxy::addService(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto device = std::dynamic_pointer_cast<DeviceProxy>(allChild.second)){
-            if(device){
-                if(device->addService(proxy)){
+        if (auto device = std::dynamic_pointer_cast<DeviceProxy>(allChild.second)) {
+            if (device) {
+                if (device->addService(proxy)) {
                     insertAllChildren(proxy, device->getChild(proxy));
                     return true;
                 }
@@ -39,9 +40,9 @@ bool AdapterProxy::addService(GDBusProxy *proxy) {
 
 bool AdapterProxy::addCharacteristic(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto service = std::dynamic_pointer_cast<ServiceProxy>(allChild.second)){
-            if(service){
-                if(service->addCharacteristic(proxy)){
+        if (auto service = std::dynamic_pointer_cast<ServiceProxy>(allChild.second)) {
+            if (service) {
+                if (service->addCharacteristic(proxy)) {
                     insertAllChildren(proxy, service->getChild(proxy));
                     return true;
                 }
@@ -53,9 +54,9 @@ bool AdapterProxy::addCharacteristic(GDBusProxy *proxy) {
 
 bool AdapterProxy::addDescriptor(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto characteristic = std::dynamic_pointer_cast<CharacteristicProxy>(allChild.second)){
-            if(characteristic){
-                if(characteristic->addDescriptor(proxy)){
+        if (auto characteristic = std::dynamic_pointer_cast<CharacteristicProxy>(allChild.second)) {
+            if (characteristic) {
+                if (characteristic->addDescriptor(proxy)) {
                     insertAllChildren(proxy, characteristic->getChild(proxy));
                     return true;
                 }
@@ -83,9 +84,9 @@ bool AdapterProxy::removeDevice(GDBusProxy *proxy) {
 
 bool AdapterProxy::removeService(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto device = std::dynamic_pointer_cast<DeviceProxy>(allChild.second)){
-            if(device){
-                if(device->removeChild(proxy)){
+        if (auto device = std::dynamic_pointer_cast<DeviceProxy>(allChild.second)) {
+            if (device) {
+                if (device->removeChild(proxy)) {
                     eraseRemovedProxiesFromAllChildren();
                     return true;
                 }
@@ -97,9 +98,9 @@ bool AdapterProxy::removeService(GDBusProxy *proxy) {
 
 bool AdapterProxy::removeCharacteristic(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto service = std::dynamic_pointer_cast<ServiceProxy>(allChild.second)){
-            if(service){
-                if(service->removeChild(proxy)){
+        if (auto service = std::dynamic_pointer_cast<ServiceProxy>(allChild.second)) {
+            if (service) {
+                if (service->removeChild(proxy)) {
                     eraseRemovedProxiesFromAllChildren();
                     return true;
                 }
@@ -111,9 +112,9 @@ bool AdapterProxy::removeCharacteristic(GDBusProxy *proxy) {
 
 bool AdapterProxy::removeDescriptor(GDBusProxy *proxy) {
     for (auto &&allChild : allChildren) {
-        if(auto characteristic = std::dynamic_pointer_cast<CharacteristicProxy>(allChild.second)){
-            if(characteristic){
-                if(characteristic->removeChild(proxy)){
+        if (auto characteristic = std::dynamic_pointer_cast<CharacteristicProxy>(allChild.second)) {
+            if (characteristic) {
+                if (characteristic->removeChild(proxy)) {
                     eraseRemovedProxiesFromAllChildren();
                     return true;
                 }
@@ -130,7 +131,7 @@ bool AdapterProxy::isAllChild(GDBusProxy *proxy) {
 void AdapterProxy::eraseRemovedProxiesFromAllChildren() {
     auto iter = allChildren.begin();
     auto endIter = allChildren.end();
-    for(; iter != endIter; ) {
+    for (; iter != endIter;) {
         if (iter->second->isRemoved()) {
             allChildren.erase(iter++);
         } else {
@@ -144,46 +145,54 @@ bool AdapterProxy::changeAdapterProperty(GDBusProxy *proxy, AdapterProperty prop
     if (this->proxy != proxy) {
         return false;
     }
-    notifyObserver(std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
+    notifyObserver(
+            std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
     return true;
 }
 
 bool AdapterProxy::changeDeviceProperty(GDBusProxy *proxy, DeviceProperty propertyName,
                                         std::pair<PROPERTY_TYPE, std::shared_ptr<void>> property) {
-    if(!isAllChild(proxy)){
+    if (!isAllChild(proxy)) {
         return false;
     }
     auto allChild = allChildren.find(proxy);
-    allChild->second->notifyObserver(std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
+    allChild->second->notifyObserver(
+            std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
     return true;
 }
 
 bool AdapterProxy::changeServiceProperty(GDBusProxy *proxy, ServiceProperty propertyName,
                                          std::pair<PROPERTY_TYPE, std::shared_ptr<void>> property) {
-    if(!isAllChild(proxy)){
+    if (!isAllChild(proxy)) {
         return false;
     }
     auto allChild = allChildren.find(proxy);
-    allChild->second->notifyObserver(std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
-    return true;}
+    allChild->second->notifyObserver(
+            std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
+    return true;
+}
 
 bool AdapterProxy::changeCharacteristicProperty(GDBusProxy *proxy, CharacteristicProperty propertyName,
                                                 std::pair<PROPERTY_TYPE, std::shared_ptr<void>> property) {
-    if(!isAllChild(proxy)){
+    if (!isAllChild(proxy)) {
         return false;
     }
     auto allChild = allChildren.find(proxy);
-    allChild->second->notifyObserver(std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
-    return true;}
+    allChild->second->notifyObserver(
+            std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
+    return true;
+}
 
 bool AdapterProxy::changeDescriptorProperty(GDBusProxy *proxy, DescriptorProperty propertyName,
                                             std::pair<PROPERTY_TYPE, std::shared_ptr<void>> property) {
-    if(!isAllChild(proxy)){
+    if (!isAllChild(proxy)) {
         return false;
     }
     auto allChild = allChildren.find(proxy);
-    allChild->second->notifyObserver(std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
-    return true;}
+    allChild->second->notifyObserver(
+            std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>>(propertyName._to_integral(), property));
+    return true;
+}
 
 // command functions
 StartDiscoveryReturn AdapterProxy::MethodStartDiscovery() {
@@ -195,9 +204,9 @@ StopDiscoveryReturn AdapterProxy::MethodStopDiscovery() {
     return {StopDiscoveryReturn::Failed};
 }
 
-RemoveDeviceReturn AdapterProxy::MethodRemoveDevice(std::shared_ptr<DeviceProxy> device) {
-    // TODO implement me
-    return {RemoveDeviceReturn::Failed};
+RemoveDeviceReturn
+AdapterProxy::MethodRemoveDevice(std::shared_ptr<DeviceProxy> device) {
+    return dbusRemoveDevice(proxy, device->proxy);
 }
 
 SetDiscoveryFilterReturn AdapterProxy::MethodSetDiscoveryFilter() {
@@ -279,7 +288,7 @@ void AdapterProxy::PropertyPairableTimeout(uint32_t pairableTimeout) {
 }
 
 void AdapterProxy::insertAllChildren(GDBusProxy *proxy, std::shared_ptr<Proxy> child) {
-    allChildren.insert(std::make_pair<>(proxy,child));
+    allChildren.insert(std::make_pair<>(proxy, child));
 }
 
 

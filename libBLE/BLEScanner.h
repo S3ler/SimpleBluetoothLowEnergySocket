@@ -16,7 +16,7 @@
 #include <map>
 
 class BLEAdapter;
-
+class BLEAdvertisement;
 
 class BLEScanner {
 

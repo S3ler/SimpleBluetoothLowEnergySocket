@@ -280,6 +280,11 @@ void BLEAdapter::logNotification(std::shared_ptr<Proxy> data,
     }
 }
 
+void BLEAdapter::removeBLEDevice(std::shared_ptr<BLEDevice> bleDevice) {
+    checkAdapterProxy();
+    adapterProxy->MethodRemoveDevice(bleDevice->deviceProxy);
+}
+
 
 
 
