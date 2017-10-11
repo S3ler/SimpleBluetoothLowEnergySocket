@@ -27,7 +27,11 @@ public:
 
     bool hasNUS();
 
+    bool hasMultipleNUS();
+
     std::shared_ptr<BLENUSConnection> getNUSConnection();
+
+    std::list<std::shared_ptr<BLENUSConnection>> getMultipleNUSConnections();
 
     void notify(std::shared_ptr<Proxy> data, std::pair<int, std::pair<PROPERTY_TYPE, std::shared_ptr<void>>> property) override;
 

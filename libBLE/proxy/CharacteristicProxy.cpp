@@ -40,6 +40,10 @@ std::string CharacteristicProxy::PropertyUUID() {
     return getStringProperty(proxy, property._to_string());
 }
 
+std::vector<uint8_t> CharacteristicProxy::MethodReadValue(){
+    return readValue(proxy);
+}
+
 StartNotifyReturn CharacteristicProxy::MethodStartNotify() {
     return startNotify(proxy);
 }

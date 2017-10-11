@@ -26,6 +26,8 @@ public:
                      const std::shared_ptr<BLEGattCharacteristic> &rxCharacteristic,
                      const std::shared_ptr<BLEGattDescriptor> &rxDescriptor);
 
+    std::vector<uint8_t> getLastMessage();
+
     std::vector<uint8_t> getMessage();
     bool send(std::vector<uint8_t> payload);
     void connect();

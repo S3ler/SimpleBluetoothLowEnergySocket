@@ -47,6 +47,11 @@ std::list<std::shared_ptr<BLEGattDescriptor>> BLEGattCharacteristic::getDescript
     }
     return bleGattDescriptors;
 }
+std::vector<uint8_t> BLEGattCharacteristic::readValue() const {
+    checkCharacteristicProxy();
+    return characteristicProxy->MethodReadValue();
+}
+
 
 bool BLEGattCharacteristic::startNotify() const {
     checkCharacteristicProxy();
@@ -79,6 +84,7 @@ std::string BLEGattCharacteristic::getUUID() const{
 void BLEGattCharacteristic::addValueObserver(std::shared_ptr<ValueObserver> observer) {
     valueObservers.push_back(observer);
 }
+
 
 
 

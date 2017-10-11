@@ -56,3 +56,7 @@ void BLENUSConnection::notify1(std::shared_ptr<Proxy> data,
 void BLENUSConnection::notify(std::shared_ptr<std::vector<uint8_t>> value) {
     unrequestedMessages.push(*value);
 }
+
+std::vector<uint8_t> BLENUSConnection::getLastMessage() {
+    return rxCharacteristic->readValue();
+}

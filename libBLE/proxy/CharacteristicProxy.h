@@ -10,6 +10,7 @@
 #include <proxy/dbus/WriteValue.h>
 #include <proxy/dbus/StopNotify.h>
 #include <proxy/dbus/StartNotify.h>
+#include <proxy/dbus/ReadValue.h>
 #include "Proxy.h"
 #include "DescriptorProxy.h"
 #include "CharacteristicEnum.h"
@@ -26,6 +27,7 @@ public:
     bool addDescriptor(GDBusProxy *proxy);
 
 public:     // Methods
+    std::vector<uint8_t> MethodReadValue();
 
     StartNotifyReturn MethodStartNotify();
 

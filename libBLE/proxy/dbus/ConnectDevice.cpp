@@ -33,9 +33,11 @@ ConnectDeviceReturn connectDevice(GDBusProxy* proxy){
         return userData.getReturnValue();
     }
     userData.wait();
-    {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(5s);
+    if(userData.getReturnValue() == +ConnectDeviceReturn::Success){
+        {
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(5s);
+        }
     }
     return userData.getReturnValue();
 }

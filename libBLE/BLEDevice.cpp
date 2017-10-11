@@ -123,15 +123,15 @@ bool BLEDevice::hasNUS() {
                     if (bleGattCharacteristic->getUUID().compare(txUUID) == 0) {
                         std::vector<std::string> flags = bleGattCharacteristic->getFlags();
                         if (contains(flags, write)) {
-                                txCharacteristic = bleGattCharacteristic;
-                                continue;
+                            txCharacteristic = bleGattCharacteristic;
+                            continue;
                         }
                     }
                     if (bleGattCharacteristic->getUUID().compare(rxUUID) == 0) {
                         std::vector<std::string> flags = bleGattCharacteristic->getFlags();
                         if (contains(flags, notify)) {
-                                rxCharacteristic = bleGattCharacteristic;
-                                continue;
+                            rxCharacteristic = bleGattCharacteristic;
+                            continue;
                         }
                     }
                 }
@@ -143,6 +143,21 @@ bool BLEDevice::hasNUS() {
         }
     }
     return false;
+}
+
+bool BLEDevice::hasMultipleNUS() {
+    std::string serviceUUID("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+    std::transform(serviceUUID.begin(), serviceUUID.end(), serviceUUID.begin(), ::tolower);
+
+    uint16_t numberOfNUS = 0;
+    auto bleGattServices = getGattServices();
+    for (auto &&bleGattService : bleGattServices) {
+        std::string uuid = bleGattService->getUUID();
+        if (serviceUUID.compare(uuid) == 0) {
+            numberOfNUS++;
+        }
+    }
+    return (numberOfNUS != 0 && numberOfNUS > 1);
 }
 
 std::shared_ptr<BLENUSConnection> BLEDevice::getNUSConnection() {
@@ -193,7 +208,9 @@ std::shared_ptr<BLENUSConnection> BLEDevice::getNUSConnection() {
                 }
                 if (txCharacteristic != nullptr && rxCharacteristic != nullptr
                     /*&& txDescriptor != nullptr && rxDescriptor != nullptr*/) {
-                    auto bleNUSConnection = std::make_shared<BLENUSConnection>(bleGattService, txCharacteristic,txDescriptor,rxCharacteristic,rxDescriptor);
+                    auto bleNUSConnection = std::make_shared<BLENUSConnection>(bleGattService, txCharacteristic,
+                                                                               txDescriptor, rxCharacteristic,
+                                                                               rxDescriptor);
                     rxCharacteristic->addValueObserver(std::static_pointer_cast<ValueObserver>(bleNUSConnection));
                     return bleNUSConnection;
                 }
@@ -201,6 +218,67 @@ std::shared_ptr<BLENUSConnection> BLEDevice::getNUSConnection() {
         }
     }
     return nullptr;
+}
+
+std::list<std::shared_ptr<BLENUSConnection>> BLEDevice::getMultipleNUSConnections() {
+    // NUS UUIDs
+    std::string serviceUUID("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+    std::transform(serviceUUID.begin(), serviceUUID.end(), serviceUUID.begin(), ::tolower);
+
+    std::string txUUID("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
+    std::transform(txUUID.begin(), txUUID.end(), txUUID.begin(), ::tolower);
+    std::string write("write");
+
+    std::string rxUUID("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
+    std::transform(rxUUID.begin(), rxUUID.end(), rxUUID.begin(), ::tolower);
+    std::string notify("notify");
+
+    checkDeviceProxy();
+    std::list<std::shared_ptr<BLENUSConnection>> result;
+    auto bleGattServices = getGattServices();
+    for (auto &&bleGattService : bleGattServices) {
+        std::string uuid = bleGattService->getUUID();
+        if (serviceUUID.compare(uuid) == 0) {
+            auto bleGattCharacteristics = bleGattService->getCharacteristics();
+            if (bleGattCharacteristics.size() == 2) {
+                std::shared_ptr<BLEGattCharacteristic> txCharacteristic = nullptr;
+                std::shared_ptr<BLEGattDescriptor> txDescriptor = nullptr;
+
+                std::shared_ptr<BLEGattCharacteristic> rxCharacteristic = nullptr;
+                std::shared_ptr<BLEGattDescriptor> rxDescriptor = nullptr;
+
+                for (auto &&bleGattCharacteristic : bleGattCharacteristics) {
+                    if (bleGattCharacteristic->getUUID().compare(txUUID) == 0) {
+                        //TODO check if we need all of this conditions or if write is enough
+                        std::vector<std::string> flags = bleGattCharacteristic->getFlags();
+                        if (contains(flags, write)) {
+                            txCharacteristic = bleGattCharacteristic;
+                            continue;
+                        }
+                    }
+                    if (bleGattCharacteristic->getUUID().compare(rxUUID) == 0) {
+                        std::vector<std::string> flags = bleGattCharacteristic->getFlags();
+                        if (contains(flags, notify)) {
+                            /*if (bleGattCharacteristic->getDescriptors().size() == 1) {
+                                rxDescriptor = bleGattCharacteristic->getDescriptors().front();
+                            }*/
+                            rxCharacteristic = bleGattCharacteristic;
+                            continue;
+                        }
+                    }
+                }
+                if (txCharacteristic != nullptr && rxCharacteristic != nullptr
+                    /*&& txDescriptor != nullptr && rxDescriptor != nullptr*/) {
+                    auto bleNUSConnection = std::make_shared<BLENUSConnection>(bleGattService, txCharacteristic,
+                                                                               txDescriptor, rxCharacteristic,
+                                                                               rxDescriptor);
+                    rxCharacteristic->addValueObserver(std::static_pointer_cast<ValueObserver>(bleNUSConnection));
+                    result.push_back(bleNUSConnection);
+                }
+            }
+        }
+    }
+    return result;
 }
 
 
@@ -246,7 +324,7 @@ bool BLEDevice::contains(std::vector<std::string> flags, std::string flag) {
 }
 
 bool BLEDevice::isBroken() const {
-    if(isConnected()){
+    if (isConnected()) {
         return false;
     }
     return getTxPower() == INT16_MAX && getRSSI() == INT16_MAX;
