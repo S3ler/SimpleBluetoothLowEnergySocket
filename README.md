@@ -85,7 +85,7 @@ My requirements for the api are that it is easy to use.
 Less is more and cleaning up broken connection should be performed automatically.
 For every technology a simple chat (star-topology) example is provided, where multiple client connect to a central server and chat with the server.
 
-
+```
 [bluetooth]# connect 00:1A:7D:DA:71:20
 Attempting to connect to 00:1A:7D:DA:71:20
 [CHG] Device 00:1A:7D:DA:71:20 Connected: yes
@@ -109,10 +109,12 @@ Connection successful
 	/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000e/desc0010
 	Characteristic Extended Properties
 [CHG] Device 00:1A:7D:DA:71:20 GattServices: /org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a
-[CHG] Device 00:1A:7D:DA:71:20 Name: bele-desktop #2
-[CHG] Device 00:1A:7D:DA:71:20 Alias: bele-desktop #2
+[CHG] Device 00:1A:7D:DA:71:20 Name: desktop #2
+[CHG] Device 00:1A:7D:DA:71:20 Alias: desktop #2
 [CHG] Device 00:1A:7D:DA:71:20 Appearance: 0x0104
+```
 
+```
 isDBusChild:
 Device:
 Adapter=/org/bluez/hci2
@@ -122,4 +124,4 @@ GattCharacteristic
 Service=/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a
 GattDescriptor
 Characteristic=/org/bluez/hci2/dev_00_1A_7D_DA_71_20/service000a/char000b
-
+```
